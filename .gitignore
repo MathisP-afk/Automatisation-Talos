@@ -1,0 +1,28 @@
+# ----------------------------------------------------------------------
+# Fichiers d'état et de cache (CRITIQUE pour Terraform)
+# ----------------------------------------------------------------------
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.backup
+crash.log
+*.tvars
+*.tvars.json
+
+# ----------------------------------------------------------------------
+# Fichiers générés par les outils locaux (Kube/Talos/Ansible)
+# ----------------------------------------------------------------------
+# Les fichiers de configuration secrets générés par Talosctl
+kubeconfig
+talosconfig
+
+# Fichiers spécifiques au projet Ansible/Python
+__pycache__/
+*.retry
+*.pyc
+venv-ansible/
+
+# Fichiers de secrets Talos
+config/controlplane.yaml
+config/worker.yaml
+config/talosconfig

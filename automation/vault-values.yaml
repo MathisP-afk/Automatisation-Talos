@@ -1,0 +1,27 @@
+server:
+  ha:
+    enabled: true
+    replicas: 1       # <--- ICI ! C'est à l'intérieur de 'ha'
+    raft:
+      enabled: true
+      setNodeId: true
+      config: |
+        ui = true
+        listener "tcp" {
+          tls_disable = 1
+          address = "[::]:8200"
+          cluster_address = "[::]:8201"
+        }
+        storage "raft" {
+          path = "/vault/data"
+        }
+
+  # On utilise la StorageClass 'local-path'
+  dataStorage:
+    storageClass: "local-path"
+    size: 2Gi
+
+# Interface graphique
+ui:
+  enabled: true
+  serviceType: "NodePort"

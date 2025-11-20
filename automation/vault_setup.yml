@@ -1,0 +1,60 @@
+---
+- name: Configuration Vault via API (Sans collection)
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    # ⚠️ REMPLACEZ CECI PAR VOTRE VRAI TOKEN
+    vault_token: "hvs.XXXXXXXXXXXXXXXXX"
+    vault_url: "http://127.0.0.1:8200"
+
+  tasks:
+    # 1. Vérifier la santé de Vault
+    - name: Vérifier la connectivité
+      uri:
+        url: "{{ vault_url }}/v1/sys/health"
+        status_code: [200, 429, 472, 473]
+
+    # 2. Activer le moteur de secrets (Equivalent de vault secrets enable)
+    - name: Activer le moteur 'projet-web' (KV v2)
+      uri:
+        url: "{{ vault_url }}/v1/sys/mounts/projet-web"
+        method: POST
+        headers:
+          X-Vault-Token: "{{ vault_token }}"
+        body_format: json
+        body:
+          type: "kv"
+          options:
+            version: "2"
+        # 204 = Créé, 400 = Déjà existant (on ignore l'erreur si déjà là)
+        status_code: [204, 200, 400]
+      ignore_errors: yes
+
+    # 3. Écrire le secret (Equivalent de vault kv put)
+    - name: Stocker le secret dans database/prod
+      uri:
+        url: "{{ vault_url }}/v1/projet-web/data/database/prod"
+        method: POST
+        headers:
+          X-Vault-Token: "{{ vault_token }}"
+        body_format: json
+        body:
+          data:
+            username: "admin_db"
+            password: "SuperPasswordAPI!"
+            host: "192.168.1.50"
+        status_code: [200, 204]
+
+    # 4. Lire le secret pour vérifier
+    - name: Lire le secret
+      uri:
+        url: "{{ vault_url }}/v1/projet-web/data/database/prod"
+        method: GET
+        headers:
+          X-Vault-Token: "{{ vault_token }}"
+      register: result_read
+
+    - name: Afficher le résultat
+      debug:
+        msg: "Succès ! Utilisateur récupéré : {{ result_read.json.data.data.username }}"
